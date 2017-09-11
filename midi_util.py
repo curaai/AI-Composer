@@ -4,7 +4,7 @@ import numpy as np
 
 
 # shape ( mp3 length , 3 )
-def song2seq(file_name):
+def song2note(file_name):
     mid = MidiFile(file_name)
     is_note = lambda x: isinstance(x, mido.Message) and x.type in ["note_on", "note_off"]
 
@@ -21,62 +21,28 @@ def song2seq(file_name):
 
     note_dic = note_dict(notes)
 
+    return np.array(notes), note_dic
+
+
+def encoding(notes, time_line, note_dic):
     note_seq = []
+    note_len = []
     i = 0
     while True:
         try:
             j = i
-
-            line = [notes[j]]
+            line = [note_dic[notes[j]]]
             while time_line[j] == time_line[j + 1]:
                 j += 1
-                line.append(notes[j])
+                line.append(note_dic[notes[j]])
             i = j + 1
 
+            note_len.append(len(line))
             note_seq.append(line)
         except IndexError:
             break
 
-    return note_seq, note_dic
-
-
-def song2sequence(file_name):
-    mid = MidiFile(file_name)
-    is_note = lambda x: isinstance(x, mido.Message) and x.type in ["note_on", "note_off"]
-
-    current_tick = 0
-    notes = list()
-    time_line = list()
-
-    for track in mid.tracks:
-        for msg in track:
-            current_tick += msg.time
-            if is_note(msg):
-                time_line.append(current_tick)
-                notes.append(msg.note)
-
-    notes_dict = note_dict(notes)
-    dict_len = len(notes_dict)
-
-    sequence = list()
-    i = 0
-    while True:
-        try:
-            j = i
-
-            line = np.zeros(dict_len)
-            line[notes_dict[notes[j]]] = 1
-
-            while time_line[j] == time_line[j+1]:
-                j += 1
-                line[notes_dict[notes[j]]] = 1
-            i = j + 1
-
-            sequence.append(line)
-        except IndexError:
-            break
-
-    return sequence
+    return np.array(note_seq), np.array(note_len)
 
 
 def note_dict(note):
@@ -93,9 +59,4 @@ def make_xy(sentence, seq_length):
         x_data.append(x_seq)
         y_data.append(y_seq)
 
-    return x_data, y_data
-
-
-if __name__ == '__main__':
-    (a, b) = song2seq('test.mid')
-    print(a.shape)
+    return np.array(x_data), np.array(y_data)
