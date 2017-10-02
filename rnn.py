@@ -5,8 +5,8 @@ import midi_util
 
 
 class Composer:
-    def __init__(self, sess, file_path):
-        (seq, notes_dict) = midi_util.song2note(file_path)
+    def __init__(self, sess, file_path, window_size):
+        seq, notes_dict = midi_util.song2seq(file_path, window_size)
         self.seq = seq
         self.notes_dict = notes_dict
 
@@ -16,34 +16,38 @@ class Composer:
         self.notes_dict = notes_dict
         note_class = len(notes_dict)
 
-        self.batch_size = seq.shape[0]
-        self.hidden_size = 200
-        self.num_classes = note_class
-        self.seq_length = 15
+        self.n_input = note_class
+        self.n_batch = len(seq) - window_size
+        self.n_hidden = 200
+        self.n_class = note_class
+        self.seq_length = window_size
 
         self.sess = sess
         self.build()
 
     def build(self):
-        self.X = tf.placeholder(tf.int32, [None, self.seq_length])
-        self.Y = tf.placeholder(tf.int32, [None, self.seq_length])
-        self.batch_size = tf.shape(self.X)[0]
-
-        X_one_hot = tf.one_hot(self.X, self.num_classes)
+        self.X = tf.placeholder(tf.float32, [None, self.seq_length, self.n_class])
+        self.Y = tf.placeholder(tf.float32, [None, self.seq_length])
+        self.W = tf.Variable(tf.random_normal([self.n_hidden, self.n_class]))
+        self.b = tf.Variable(tf.random_normal([self.n_class]))
 
         multi_cells = rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)], state_is_tuple=True)
         outputs, _states = tf.nn.dynamic_rnn(
             multi_cells,
-            X_one_hot,
+            self.X,
             dtype=tf.float32)
 
-        X_for_fc = tf.reshape(outputs, [-1, self.hidden_size])
-        outputs = tf.contrib.layers.fully_connected(X_for_fc, self.num_classes, activation_fn=None)
+        # output [batch_size, seq_length, n_hidden]
+        x_for_softmax = tf.reshape(outputs, [-1, self.n_hidden])
 
-        outputs = tf.reshape(outputs, [self.batch_size, self.seq_length, self.num_classes])
+        softmax_w = tf.get_variable("softmax_w", [self.n_hidden, self.n_class])
+        softmax_b = tf.get_variable("softmax_b", [self.n_class])
+        outputs = tf.matmul(x_for_softmax, softmax_w) + softmax_b
 
-        weights = tf.ones([self.batch_size, self.seq_length])
+        outputs = tf.reshape(outputs, [self.n_batch, self.seq_length, self.n_class])
+        weights = tf.ones([self.n_batch, self.seq_length, self.n_class])
 
+        self.Y = tf.reshape(self.Y, [-1])
         seq_loss = tf.contrib.seq2seq.sequence_loss(
             logits=outputs, targets=self.Y, weights=weights
         )
@@ -54,14 +58,12 @@ class Composer:
         self.train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.mean_loss)
         self.pred = tf.nn.softmax(outputs)
 
-        self.summary = tf.summary.merge_all()
-
     def train(self, x_data, y_data):
-        return self.sess.run([self.train_op, self.mean_loss, self.summary],
+        return self.sess.run([self.train_op, self.mean_loss],
                              feed_dict={self.X: x_data, self.Y: y_data})
 
     def lstm_cell(self):
-        return rnn.BasicLSTMCell(self.hidden_size, state_is_tuple=True)
+        return rnn.BasicLSTMCell(self.n_hidden, state_is_tuple=True)
 
     def predict(self, X):
         return self.sess.run(self.pred, feed_dict={self.X: X})
