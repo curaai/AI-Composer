@@ -5,20 +5,21 @@ from sklearn.utils import shuffle
 
 
 class DataSet:
-    def __init__(self, seq_length):
+    def __init__(self, midi_path, seq_length, batch_size):
         self.seq_length = seq_length
-        
+        self.batch_size = batch_size
+
         self.min_ = 0 
         self.max_ = 0 
-
         self.notes = list()
 
-    def generate_notes(self, midi_path):
-        music = MidiFile(midi_path)
+        self.midi_path = midi_path
+
+    def generate_notes(self):
+        music = MidiFile(self.midi_path)
         
         for msg in music:
             if msg.time != 0:
-                note = list()
                 # note = note, velocity, time                
                 if not msg.is_meta and msg.type == 'note_on':
                     note = msg.bytes()[1:] + [msg.time]
@@ -41,7 +42,6 @@ class DataSet:
         notes = np.dstack((note, velocity, time))[0]
         self.notes = notes
 
-    def get_feed_data(self):
         x_data = list()
         y_data = list()
 
@@ -49,20 +49,11 @@ class DataSet:
             x_data.append(self.notes[i: i + self.seq_length])
             y_data.append(self.notes[i + self.seq_length])
 
-        x_data = np.array(x_data)
-        y_data = np.array(y_data)
+        self.x = np.array(x_data)
+        self.y = np.array(y_data)
 
-        x_data, y_data = shuffle(x_data, y_data, random_state=5)
-        return x_data, y_data
+    def get_feed_data(self):
+        total_size = len(self.y)
+        mask = np.random.choice(total_size, self.batch_size)
 
-
-if __name__ == '__main__':
-    path = "test.mid"
-    data = DataSet(15)
-    data.generate_notes(path)
-    data.pre_process_note()
-    
-    x, y = data.get_feed_data()
-
-    print(x.shape)
-    print(y.shape)
+        return self.x[mask], self.y[mask]
