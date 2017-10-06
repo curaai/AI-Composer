@@ -1,6 +1,8 @@
 import tensorflow as tf
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-import model
+import compose_model
 import midi_util
 
 SEQ_LENGTH = 30
@@ -14,7 +16,7 @@ if __name__ == '__main__':
     data.pre_process_note()
 
     with tf.Session() as sess:
-        composer = model.Composer(sess, SEQ_LENGTH)
+        composer = compose_model.Composer(sess, SEQ_LENGTH)
         sess.run(tf.global_variables_initializer())
         print("Learning Start !!!")
 
