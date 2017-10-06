@@ -19,7 +19,6 @@ class Composer:
     def build(self):
         def _lstm_cell():
             cell = rnn.BasicLSTMCell(self.hidden_size, state_is_tuple=True)
-            cell = rnn.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
             return cell
 
         self.X = tf.placeholder(tf.float32, [None, self.seq_length, self.output_size])

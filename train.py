@@ -3,7 +3,7 @@ import tensorflow as tf
 import model
 import midi_util
 
-SEQ_LENGTH = 20
+SEQ_LENGTH = 30
 BATCH_SIZE = 300
 ITERATION = 10000
 
