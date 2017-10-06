@@ -5,7 +5,7 @@ from sklearn.utils import shuffle
 
 
 class DataSet:
-    def __init__(self, midi_path, seq_length, batch_size):
+    def __init__(self, seq_length, batch_size):
         self.seq_length = seq_length
         self.batch_size = batch_size
 
@@ -13,10 +13,8 @@ class DataSet:
         self.max_ = 0 
         self.notes = list()
 
-        self.midi_path = midi_path
-
-    def generate_notes(self):
-        music = MidiFile(self.midi_path)
+    def generate_notes(self, midi_path):
+        music = MidiFile(midi_path)
 
         prev = 0
         time = 0
