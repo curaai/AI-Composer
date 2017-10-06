@@ -4,8 +4,8 @@ import model
 import midi_util
 
 SEQ_LENGTH = 20
-BATCH_SIZE = 15
-ITERATION = 1000
+BATCH_SIZE = 300
+ITERATION = 10000
 
 if __name__ == '__main__':
     midi = "test.mid"
