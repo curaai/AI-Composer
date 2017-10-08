@@ -20,8 +20,8 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--midi', default='test.mid', help="File to train")
     args = parser.parse_args()
 
-    data =  midi_util.DataSet(midi, args.seq_length, args.batch_size)
-    midi = ",".split(args.midi)
+    data = midi_util.DataSet(args.seq_length, args.batch_size)
+    midi = args.midi.split(",")
     for path in midi:
         data.generate_notes(path)
     data.pre_process_note()
@@ -39,6 +39,9 @@ if __name__ == '__main__':
                 print("Iteration: {0}, Accuracy: {1}".format(i, accuracy))
 
         saver.save(sess, args.save)
+        path = os.path.join(os.path.basename(args.save), 'maxtime.txt')
+        with open(path, 'w') as f:
+            f.write(str(data.max_time))
         print("Learning Finish !!!")   
 
 

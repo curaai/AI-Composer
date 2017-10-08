@@ -9,24 +9,21 @@ class DataSet:
         self.seq_length = seq_length
         self.batch_size = batch_size
 
-        self.min_ = 0 
-        self.max_ = 0 
+        self.max_time = 0
         self.notes = list()
 
     def generate_notes(self, midi_path):
         music = MidiFile(midi_path)
 
-        prev = 0
-        time = 0
-
         for msg in music:
-            time += msg.time
             if msg.time != 0:
-                # note = note, velocity, time                
+                # note = note, velocity, time
                 if not msg.is_meta and msg.type == 'note_on':
-                    note = msg.bytes()[1:] + [time-prev]
-                    prev = time
+                    note = msg.bytes()[1:] + [msg.time]
                     self.notes.append(note)
+
+                if self.max_time < msg.time:
+                    self.max_time = msg.time
 
     def pre_process_note(self):
         notes = np.array(self.notes)
@@ -37,7 +34,7 @@ class DataSet:
 
         note = (note - 24) / 88
         velocity /= 127
-        time     /= max(time)
+        time     /= self.max_time
 
         # (len) * 3  =>  (len, 3)
         notes = np.dstack((note, velocity, time))[0]
