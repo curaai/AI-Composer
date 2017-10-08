@@ -63,11 +63,10 @@ if __name__ == '__main__':
     sequence = data.x[:args.seq_length]
     pred_notes = list()
 
-    saver = tf.train.Saver()
     with tf.Session() as sess:
         composer = compose_model.Composer(sess, args.seq_length)
         sess.run(tf.global_variables_initializer())
-        saver.restore(sess, args.save)
+        composer.saver.restore(sess, args.save)
 
         for i in range(args.note_length):
             # before notes [1:] + predicted note []
@@ -76,7 +75,7 @@ if __name__ == '__main__':
             # stack generated note
             pred_notes.append(note)
 
-    time_path = os.path.join(os.path.basename(args.save), 'maxtime.txt')
+    time_path = os.path.join(os.path.dirname(args.save), 'maxtime.txt')
     with open(time_path, 'r') as f:
         time = int(f.readline())
 

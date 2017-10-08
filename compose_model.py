@@ -52,6 +52,8 @@ class Composer:
 
             correct_pred = tf.equal(self.pred, self.Y)
             self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        
+            self.saver = tf.train.Saver()
 
     def train(self, x, y, is_training=True, keep_prob=0.2):
         return self.sess.run([self.optimizer, self.pred, self.accuracy],

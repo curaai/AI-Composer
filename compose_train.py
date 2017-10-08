@@ -31,15 +31,15 @@ if __name__ == '__main__':
         sess.run(tf.global_variables_initializer())
         print("Learning Start !!!")
 
-        saver = tf.train.Saver()
         for i in range(args.iteration):
             x, y = data.get_feed_data()
             _, pred, accuracy = composer.train(x, y)
             if i % 10 == 0:
                 print("Iteration: {0}, Accuracy: {1}".format(i, accuracy))
 
-        saver.save(sess, args.save)
-        path = os.path.join(os.path.basename(args.save), 'maxtime.txt')
+        composer.saver.save(sess, args.save)
+
+        path = os.path.join(os.path.dirname(args.save), 'maxtime.txt')
         with open(path, 'w') as f:
             f.write(str(data.max_time))
         print("Learning Finish !!!")   
