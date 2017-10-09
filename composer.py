@@ -55,7 +55,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', help="Save composed midi song", required=True)
     args = parser.parse_args()
 
-    data = midi_util.DataSet(args.seq_length, 0)
+    data = midi_util.DataSet(args.seq_length, 1)
     data.generate_notes(args.midi)
     data.pre_process_note()
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
         for i in range(args.note_length):
             # before notes [1:] + predicted note []
-            note = composer.predict(sequence).reshape(1, 20, 3)
+            note = np.array(composer.predict(sequence)).reshape(1, 20, 3)
             sequence = sequence[1:] + note
             # stack generated note
             pred_notes.append(note)
