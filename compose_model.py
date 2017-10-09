@@ -25,10 +25,10 @@ class Composer:
         self.keep_prob = tf.placeholder(tf.float32)
         self.is_training = tf.placeholder(tf.bool)
 
-        multi_cells = rnn.MultiRNNCell([_lstm_cell() for _ in range(self.rnn_size)], state_is_tuple=True)
-        output, states_ = tf.nn.dynamic_rnn(multi_cells, self.X, dtype=tf.float32)
-
         with tf.variable_scope("rnn"):
+            multi_cells = rnn.MultiRNNCell([_lstm_cell() for _ in range(self.rnn_size)], state_is_tuple=True)
+            output, states_ = tf.nn.dynamic_rnn(multi_cells, self.X, dtype=tf.float32)
+
             pred = tf.contrib.layers.fully_connected(output[:, -1], self.output_size, activation_fn=None)
             self.pred = pred
 
