@@ -12,7 +12,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def generate_song(notes, max_time, path):
     new_notes = list()
-    for note in notes:
+    for note in notes[0]:
         tone = note[0]
         velocity = note[1]
         time = note[2]
@@ -55,12 +55,12 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', help="Save composed midi song", required=True)
     args = parser.parse_args()
 
-    data = midi_util.DataSet(args.seq_length, 0)
+    data = midi_util.DataSet(args.seq_length, 1)
     data.generate_notes(args.midi)
     data.pre_process_note()
 
     # initial data to generate notes
-    sequence = data.x[:args.seq_length]
+    sequence = data.x[0].reshape(1, 30, 3)
     pred_notes = list()
 
     with tf.Session() as sess:
@@ -70,14 +70,15 @@ if __name__ == '__main__':
 
         for i in range(args.note_length):
             # before notes [1:] + predicted note []
-            note = composer.predict(sequence).reshape(1, 20, 3)
-            sequence = sequence[1:] + note
+            note = composer.predict(sequence)[0]
+            sequence = np.vstack((sequence[0][1:], note))
             # stack generated note
+            sequence = sequence.reshape(1, 30, 3)
             pred_notes.append(note)
 
     time_path = os.path.join(os.path.dirname(args.save), 'maxtime.txt')
     with open(time_path, 'r') as f:
-        time = int(f.readline())
+        time = float(f.readline())
 
     generate_song(pred_notes, time, args.path)
 
