@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(epilog=exmaple_text)
     parser.add_argument('-sl', '--seq_length', type=int, default=30, help='How many set sequence length to train')
-    parser.add_argument('-b', '--batch_size', type=int, default=30, help="Batch size")
+    parser.add_argument('-b', '--batch_size', type=int, default=20, help="Batch size")
     parser.add_argument('-i', '--iteration', type=int, default=2000, help='Iteration')
     parser.add_argument('-s', '--save', default='save/save.ckpt', help='Save trained network')
     parser.add_argument('-m', '--midi', default='test.mid', help="File to train")
@@ -34,6 +34,7 @@ if __name__ == '__main__':
         for i in range(args.iteration):
             x, y = data.get_feed_data()
             _, pred, accuracy = composer.train(x, y)
+            print(pred.shape)
             if i % 10 == 0:
                 print("Iteration: {0}, Accuracy: {1}".format(i, accuracy))
 

@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
         for i in range(args.note_length):
             # before notes [1:] + predicted note []
-            note = composer.predict(sequence)
+            note = composer.predict(sequence).reshape(1, 20, 3)
             sequence = sequence[1:] + note
             # stack generated note
             pred_notes.append(note)

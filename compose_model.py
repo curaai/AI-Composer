@@ -29,21 +29,7 @@ class Composer:
         output, states_ = tf.nn.dynamic_rnn(multi_cells, self.X, dtype=tf.float32)
 
         with tf.variable_scope("rnn"):
-            with tf.name_scope("fc1"):
-                fc1 = tf.contrib.layers.fully_connected(output, 1024)
-                fc1 = tf.contrib.layers.batch_norm(fc1,
-                                                   center=True, scale=True,
-                                                   is_training=self.is_training)
-                fc1 = tf.nn.relu(fc1, name='relu1')
-
-            with tf.name_scope("fc2"):
-                fc2 = tf.contrib.layers.fully_connected(fc1, 1024)
-                fc2 = tf.contrib.layers.batch_norm(fc2,
-                                                   center=True, scale=True,
-                                                   is_training=self.is_training)
-                fc2 = tf.nn.relu(fc2, name='relu1')
-
-            pred = tf.contrib.layers.fully_connected(fc2[:, -1], self.output_size)
+            pred = tf.contrib.layers.fully_connected(output[:, -1], self.output_size, activation_fn=None)
             self.pred = pred
 
             self.cost = tf.losses.mean_squared_error(self.Y, self.pred)
