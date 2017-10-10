@@ -4,22 +4,25 @@ import numpy as np
 import os
 from mido import Message, MidiFile, MidiTrack
 
-import compose_model
+import model
 import midi_util
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 def generate_song(notes, max_time, path):
-    new_notes = list()
-    for note in notes[0]:
-        tone = note[0]
-        velocity = note[1]
-        time = note[2]
+    print("generte songs") 
+    print(path)
 
-        tone = int((tone + 24) / 88)
+    new_notes = list()
+    for _note in notes:
+        tone = _note[0][0]
+        velocity =_note[0][1]
+        time = _note[0][2]
+
+        tone = int(tone * 88 + 24)
         velocity = int(velocity * 127)
-        time = int(time * max_time)
+        time = int(time * max_time/0.001025)
 
         if tone < 24:
             tone = 24
@@ -64,8 +67,9 @@ if __name__ == '__main__':
     sequence = data.x[0].reshape(1, 30, 3)
     pred_notes = list()
 
+    print(args.path)
     with tf.Session() as sess:
-        composer = compose_model.Composer(sess, args.seq_length)
+        composer = model.Composer(sess, args.seq_length)
         sess.run(tf.global_variables_initializer())
         composer.saver.restore(sess, args.save)
 
@@ -81,5 +85,7 @@ if __name__ == '__main__':
     with open(time_path, 'r') as f:
         time = float(f.readline())
 
+    print(time)
+    
     generate_song(pred_notes, time, args.path)
 

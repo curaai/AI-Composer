@@ -3,7 +3,7 @@ import tensorflow as tf
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-import compose_model
+import model
 import midi_util
 
 
@@ -27,16 +27,16 @@ if __name__ == '__main__':
     data.pre_process_note()
 
     with tf.Session() as sess:
-        composer = compose_model.Composer(sess, args.seq_length)
+        composer = model.Composer(sess, args.seq_length)
         sess.run(tf.global_variables_initializer())
         print("Learning Start !!!")
 
         for i in range(args.iteration):
             x, y = data.get_feed_data()
-            _, pred, accuracy = composer.train(x, y)
-            print(pred.shape)
-            if i % 10 == 0:
-                print("Iteration: {0}, Accuracy: {1}".format(i, accuracy))
+            _, pred, accuracy, loss = composer.train(x, y)
+            if i % 50 == 0:
+                print("Iteration: " + str(i))
+                print("Loss: " + str(loss))
 
         composer.saver.save(sess, args.save)
 
@@ -44,5 +44,3 @@ if __name__ == '__main__':
         with open(path, 'w') as f:
             f.write(str(data.max_time))
         print("Learning Finish !!!")   
-
-

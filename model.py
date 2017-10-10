@@ -33,7 +33,7 @@ class Composer:
             self.pred = pred
 
             self.cost = tf.losses.mean_squared_error(self.Y, self.pred)
-            optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
+            optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
             self.optimizer = optimizer
 
             correct_pred = tf.equal(self.pred, self.Y)
@@ -42,7 +42,7 @@ class Composer:
             self.saver = tf.train.Saver()
 
     def train(self, x, y, is_training=True, keep_prob=0.2):
-        return self.sess.run([self.optimizer, self.pred, self.accuracy],
+        return self.sess.run([self.optimizer, self.pred, self.accuracy, self.cost],
                              feed_dict={self.X: x, self.Y: y, self.keep_prob: keep_prob, self.is_training: is_training})
 
     def predict(self, x, is_training=False, keep_prob=1.0):
