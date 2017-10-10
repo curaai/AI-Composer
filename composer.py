@@ -10,17 +10,17 @@ import midi_util
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-def generate_song(notes, max_time, path):
+def generate_song(notes, m_time, path):
     print("generte songs")
     new_notes = list()
     for _note in notes:
         tone = _note[0][0]
-        velocity =_note[0][1]
+        velocity = _note[0][1]
         time = _note[0][2]
 
         tone = int(tone * 88 + 24)
         velocity = int(velocity * 127)
-        time = int(time * max_time/0.001025)
+        time = int(time * m_time/0.001025)
 
         if tone < 24:
             tone = 24
@@ -41,9 +41,13 @@ def generate_song(notes, max_time, path):
     track = MidiTrack()
     mid.tracks.append(track)
 
+    before = list()
     for note in new_notes:
-        track.append(Message('note_on', note=note[0], velocity=note[1], time=note[2]))
-        print('note: {}, velocity: {}, time= {}'.format(note[0], note[1], note[2]))
+        if not note[0] == note[1] == 0:
+            track.append(Message('note_on', note=note[0], velocity=note[1], time=note[2]))
+            before = note
+        else:
+            track.append(Message('note_off', note=before[0], velocity=before[1], time=note[2]))
 
     mid.save(path)
 
@@ -65,7 +69,6 @@ if __name__ == '__main__':
     sequence = data.x[0].reshape(1, args.seq_length, 3)
     pred_notes = list()
 
-    print(args.path)
     with tf.Session() as sess:
         composer = model.Composer(sess, args.seq_length)
         sess.run(tf.global_variables_initializer())
@@ -81,9 +84,8 @@ if __name__ == '__main__':
 
     time_path = os.path.join(os.path.dirname(args.save), 'maxtime.txt')
     with open(time_path, 'r') as f:
-        time = float(f.readline())
-
-    print(time)
+        max_time = float(f.readline())
     
-    generate_song(pred_notes, time, args.path)
+    generate_song(pred_notes, max_time, args.path)
 
+    os.remove('maxtime.txt')

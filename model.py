@@ -7,10 +7,11 @@ class Composer:
         self.sess = sess
 
         self.learning_rate = 0.01
+        self.fc_size = 256
 
         self.seq_length = seq_length
         self.hidden_size = 128
-        self.rnn_size = 4
+        self.rnn_size = 2
         self.output_size = 3
 
         self.build()
@@ -30,13 +31,27 @@ class Composer:
             multi_cells = rnn.MultiRNNCell([_lstm_cell() for _ in range(self.rnn_size)], state_is_tuple=True)
             output, states_ = tf.nn.dynamic_rnn(multi_cells, self.X, dtype=tf.float32)
 
-            pred = tf.contrib.layers.fully_connected(output[:, -1], self.output_size, activation_fn=None)
+            with tf.name_scope("fc1"):
+                fc1 = tf.contrib.layers.fully_connected(output, self.fc_size)
+                fc1 = tf.contrib.layers.batch_norm(fc1,
+                                                   center=True, scale=True,
+                                                   is_training=self.is_training)
+                fc1 = tf.nn.relu(fc1, name='relu1')
+
+            with tf.name_scope("fc2"):
+                fc2 = tf.contrib.layers.fully_connected(fc1, self.fc_size)
+                fc2 = tf.contrib.layers.batch_norm(fc2,
+                                                   center=True, scale=True,
+                                                   is_training=self.is_training)
+                fc2 = tf.nn.relu(fc2, name='relu2')
+
+            pred = tf.contrib.layers.fully_connected(fc2[:, -1], self.output_size)
             self.pred = pred
 
             # mse loss
-            self.cost = tf.losses.mean_squared_error(self.Y, self.pred)
+            self.cost = tf.reduce_sum(tf.pow(self.pred - self.Y, 2))
             # adam optimizer
-            optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
+            optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
             self.optimizer = optimizer
 
             correct_pred = tf.equal(self.pred, self.Y)
@@ -48,9 +63,9 @@ class Composer:
             self.sum_accuracy = tf.summary.scalar('accuracy', self.accuracy)
             self.summary = tf.summary.merge_all()
 
-    def train(self, x, y, is_training=True, keep_prob=0.2):
+    def train(self, x, y, keep_prob=0.2, is_training=True):
         return self.sess.run([self.optimizer, self.pred, self.accuracy, self.cost, self.summary],
                              feed_dict={self.X: x, self.Y: y, self.keep_prob: keep_prob, self.is_training: is_training})
 
-    def predict(self, x, is_training=False, keep_prob=1.0):
+    def predict(self, x, keep_prob=1.0, is_training=False):
         return self.sess.run([self.pred], feed_dict={self.X: x, self.keep_prob: keep_prob, self.is_training: is_training})

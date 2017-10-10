@@ -20,6 +20,9 @@ class DataSet:
             if not msg.is_meta and msg.type == 'note_on':
                 note = msg.bytes()[1:] + [msg.time]
                 self.notes.append(note)
+            # sleep note
+            elif msg.time != 0:
+                self.notes.append([0, 0, msg.time])
 
             if self.max_time < msg.time:
                 self.max_time = msg.time

@@ -14,9 +14,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(epilog=exmaple_text)
     parser.add_argument('-sl', '--seq_length', type=int, default=30, help='How many set sequence length to train')
-    parser.add_argument('-b', '--batch_size', type=int, default=20, help="Batch size")
+    parser.add_argument('-b', '--batch_size', type=int, default=30, help="Batch size")
     parser.add_argument('-sm', '--summary', default='board/composer', help='Tensor board path')
-    parser.add_argument('-i', '--iteration', type=int, default=2000, help='Iteration')
+    parser.add_argument('-i', '--iteration', type=int, default=400, help='Iteration')
     parser.add_argument('-s', '--save', default='save/save.ckpt', help='Save trained network')
     parser.add_argument('-m', '--midi', default='songs/canon.mid,songs/flower_dance.mid', help="File to train")
     args = parser.parse_args()
@@ -40,8 +40,7 @@ if __name__ == '__main__':
                 writer.add_summary(summary, float(i))
 
             if i % 50 == 0:
-                print("Iteration: " + str(i))
-                print("Loss: " + str(loss))
+                print("Iteration: {0}, loss: {1}, accuracy: {2}".format(str(i), loss, accuracy))
 
         composer.saver.save(sess, args.save)
 
