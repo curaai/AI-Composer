@@ -11,9 +11,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 def generate_song(notes, max_time, path):
-    print("generte songs") 
-    print(path)
-
+    print("generte songs")
     new_notes = list()
     for _note in notes:
         tone = _note[0][0]
@@ -55,7 +53,7 @@ if __name__ == '__main__':
     parser.add_argument('-sl', '--seq_length', type=int, default=30, help='How many set sequence length to train')
     parser.add_argument('-nl', '--note_length', type=int, default=3000, help='Note length of music')
     parser.add_argument('-s', '--save', default='save/save.ckpt', help='Save trained network')
-    parser.add_argument('-m', '--midi', default='test.mid', help="Head of seed midi notes")
+    parser.add_argument('-m', '--midi', default='songs/flower_dance.mid', help="Head of seed midi notes")
     parser.add_argument('-p', '--path', help="Save composed midi song", required=True)
     args = parser.parse_args()
 
@@ -64,7 +62,7 @@ if __name__ == '__main__':
     data.pre_process_note()
 
     # initial data to generate notes
-    sequence = data.x[0].reshape(1, 30, 3)
+    sequence = data.x[0].reshape(1, args.seq_length, 3)
     pred_notes = list()
 
     print(args.path)
@@ -78,7 +76,7 @@ if __name__ == '__main__':
             note = composer.predict(sequence)[0]
             sequence = np.vstack((sequence[0][1:], note))
             # stack generated note
-            sequence = sequence.reshape(1, 30, 3)
+            sequence = sequence.reshape(1, args.seq_length, 3)
             pred_notes.append(note)
 
     time_path = os.path.join(os.path.dirname(args.save), 'maxtime.txt')
