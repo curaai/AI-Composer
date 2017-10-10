@@ -42,6 +42,7 @@ def generate_song(notes, max_time, path):
 
     for note in new_notes:
         track.append(Message('note_on', note=note[0], velocity=note[1], time=note[2]))
+        print('note: {}, velocity: {}, time= {}'.format(note[0], note[1], note[2]))
 
     mid.save(path)
 
